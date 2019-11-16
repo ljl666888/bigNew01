@@ -62,12 +62,87 @@
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success btn-edit">修改</button>
+                        <button type="submit" class="btn btn-success btn-edit ">修改</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+
+
+    <script src="./libs/http.js"></script>
+    <script>
+
+        //入口函数
+        $(function () {
+            //一进到个人中心页面，就显示这个用户所有个人信息
+            $.ajax({
+                type: 'get',
+                url: BigNew.user_detail,
+                success: function (backData) {
+                    // console.log(backData);
+                    if (backData.code == 200) {
+                        //    $('input.nickname').val(backData.data.username);
+                        //    $('input.username').val(backData.data.nickname);
+                        //    $('input.password').val(backData.data.password);
+                        //    $('input.email').val(backData.data.email);
+                        for (var key in backData.data) {
+                            $('input.' + key).val(backData.data[key]);
+                        }
+
+                        $('img.user_pic').attr('src', backData.data.userPic);
+                    }
+                }
+            });
+            //2.图片的预览
+            //给input：file的按钮设置一个值改变事件
+            $('#exampleInputFile').on('change', function () {
+                var fileIcon = this.files[0];//获取文件
+                // console.log(fileIcon);
+                var url = URL.createObjectURL(fileIcon);//把这个文件生成一个url
+                $('img.user_pic').attr('src', url);//把这个url交给用来预览的img的src
+            });
+
+            //3.点击修改按钮，完成个人信息的修改
+            $('.btn-edit').on('click', function (e) {
+                e.preventDefault();//阻止跳转
+                //创建一个xhr对象
+                var fd = new FormData($('#form')[0]);//转成dom对象
+                console.log(fd);
+                //发送ajax请求
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.user_edit,
+                    data: fd,
+                    contentType: false,
+                    processData: false,
+                    success: function (backData) {
+                        console.log(backData);
+                        //修改成功刷新页面
+                        if (backData.code == 200) {
+                            alert('修改成功！');
+                            //第一种做法,刷新页面
+                           // parent.window.location.reload();
+                            //第二种做法,刷新页面，重新发送ajax请求
+                            $.ajax({
+                                url: window.BigNew.user_info,
+                                success: function (backData) {
+                                   // console.log(backData);
+                                    if (backData.code == 200) {
+                                      parent.$('.user_info>span>i').text(backData.data.nickname);
+                                      parent.$('.user_info>img').attr('src', backData.data.userPic);
+                                      parent.$('.user_center_link>img').attr('src',backData.data.userPic);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        });
+
+    </script>
+
 </body>
 
 </html>
