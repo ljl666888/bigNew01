@@ -71,10 +71,10 @@
                 // },
                 success: function (backData) {
                     console.log(backData);
-                    if (backData.code == 200) {
+                    if(backData.code == 200) {
                         $('.user_info>span>i').text(backData.data.nickname);
                         $('.user_info>img').attr('src', backData.data.userPic);
-                        $('.user_center_link>img').attr('src', backData.data.userPic);
+                        $('.user_center_link>img').attr('src',backData.data.userPic);
                     }
                 }
             });
@@ -113,6 +113,10 @@
                  //先做判断
                  if($(this).index()==1){
                      $('ul.level02').slideToggle();
+
+
+                     //设置小箭头旋转(有rotate0类就旋转，没有就添加，属于3c动画)
+                      $(this).find('b').toggleClass('rotate0');
 
                      //默认选中ul里的第一个li
                    // $('ul.level02>li:eq(0)').trigger('click');
