@@ -60,46 +60,48 @@
 
   <script src="./libs/http.js"></script>
   <script>
-    //1.给登录按钮一个点击事件
-    $('.input_sub').on('click', function (e) {
-      e.preventDefault();//form表单中有个submit属性按钮，默认有跳转
-      //获取用户名和密码
-      var username = $('.input_txt').val().trim();
-      var password = $('.input_pass').val().trim();
-      //2.判断用户名和密码是否为空(是空就提示一下)
-      if (username == "" || password == "") {
-        // alert('用户名和密码不能为空！');
-        $('#myModal .modal-body').text('用户名和密码不能为空！');
-        $('#myModal').modal();
-        return;
-      }
-      //3.发送ajax请求
-      $.ajax({
-        type: 'post',
-        url: window.BigNew.user_login,
-        data: {
-          username: username,
-          password: password
-        },
-        success: function (backData) {
-          console.log(backData);
-          $('#myModal .modal-body').text(backData.msg);
-           $('#myModal').modal();
-          if (backData.code == 200) {
-            //登录成功，会返回一个token,把它存在本地
-            window.localStorage.setItem('token',backData.token);
-            //	此事件在模态框被隐藏（并且同时在 CSS 过渡效果完成）之后被触发
-            $('#myModal').on('hidden.bs.modal', function (e) {
-              window.location.href = './index.html';//登录成功跳转页面
-            })
-          }
+    //入口函数
+    $(function () {
+      //1.给登录按钮一个点击事件
+      $('.input_sub').on('click', function (e) {
+        e.preventDefault();//form表单中有个submit属性按钮，默认有跳转
+        //获取用户名和密码
+        var username = $('.input_txt').val().trim();
+        var password = $('.input_pass').val().trim();
+        //2.判断用户名和密码是否为空(是空就提示一下)
+        if (username == "" || password == "") {
+          // alert('用户名和密码不能为空！');
+          $('#myModal .modal-body').text('用户名和密码不能为空！');
+          $('#myModal').modal();
+          return;
         }
+        //3.发送ajax请求
+        $.ajax({
+          type: 'post',
+          url: window.BigNew.user_login,
+          data: {
+            username: username,
+            password: password
+          },
+          success: function (backData) {
+            console.log(backData);
+            $('#myModal .modal-body').text(backData.msg);
+            $('#myModal').modal();
+            if (backData.code == 200) {
+              //登录成功，会返回一个token,把它存在本地
+              window.localStorage.setItem('token', backData.token);
+              //	此事件在模态框被隐藏（并且同时在 CSS 过渡效果完成）之后被触发
+              $('#myModal').on('hidden.bs.modal', function (e) {
+                window.location.href = './index.html';//登录成功跳转页面
+              })
+            }
+          }
+        });
+
       });
 
+
     });
-
-
-
 
   </script>
 
