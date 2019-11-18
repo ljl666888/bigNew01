@@ -56,8 +56,7 @@
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <!-- 隐藏域，用于存放id -->
-                <input type="hidden" name="" id="category_id">
+
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
@@ -65,13 +64,15 @@
                 </div>
                 <div class="modal-body">
                     <form>
+                        <!-- 隐藏域，用于存放当前的id -->
+                        <input type="hidden" name="id" id="category_id">
                         <div class="form-group">
                             <label for="recipient-name" class="control-label">新增文章类名:</label>
-                            <input type="text" class="form-control" id="recipient-name">
+                            <input type="text" name="name" class="form-control" id="recipient-name">
                         </div>
                         <div class="form-group">
                             <label for="message-text" class="control-label">新增文章别名:</label>
-                            <input class="form-control" id="message-text"></input>
+                            <input class="form-control" name="slug" id="message-text"></input>
                         </div>
                     </form>
                 </div>
@@ -154,12 +155,11 @@
                 $('#myModal form')[0].reset();//dom对象调用
             });
 
-
             //四：给模态框中的新增/编辑按钮设置点击事件
             $('#myModal .btn-queren').on('click', function () {
                 //1.判断当前点击按钮有无primary属性
                 if ($(this).hasClass('btn-primary')) {
-                    // alert('新增');
+                    // alert('新增哦');
                     var cateName = $('#recipient-name').val().trim();//获取文章类别名称
                     var cateSlug = $('#message-text').val().trim();//获取文章类别别名
                     //2.发送ajax请求
@@ -181,21 +181,29 @@
                     });
 
                 } else {
-                    // alert('编辑');
+                    // alert('编辑哦');
                     //3.获取当前这行要修改的id,和修改后的分类名称和分类别名
-                    var cateId = $('#category_id').val().trim();
-                    var cateName = $('#recipient-name').val().trim();//获取文章类别名称
-                    var cateSlug = $('#message-text').val().trim();//获取文章类别别名
+                    // var cateId = $('#category_id').val().trim();
+                    // var cateName = $('#recipient-name').val().trim();//获取文章类别名称
+                    // var cateSlug = $('#message-text').val().trim();//获取文章类别别名
+                    /* 以上代码如果编辑多个，那就冗余，不利于我们维护，所以用serialize()就能解决这个问题，formData也可以，但由于
+                     formData 和serialize有区别：
+                       formData -需要后端支持，传的是对象，可以传文件，我们这个接口它不支持，
+                      serialize-不需要后端支持，不可以传文件,传的是字符串。(作用：获取form表单中带有name属性的标签的值)
+                     */
 
+                    var data = $('#myModal form').serialize();
+                    // console.log(data);
                     //4.发送ajax,完成编辑
                     $.ajax({
                         type: 'post',
                         url: BigNew.category_edit,
-                        data: {
-                            id: cateId,
-                            name: cateName,
-                            slug: cateSlug
-                        },
+                        // data: {
+                        //     id: cateId,
+                        //     name: cateName,
+                        //     slug: cateSlug
+                        // },
+                        data:data,
                         success: function (backData) {
                             // console.log(backData);
                             if (backData.code == 200) {
@@ -212,20 +220,21 @@
 
             //五：给模态框中的删除按钮注册点击事件
             //1.删除按钮是动态生成，所以用委托注册
-            $('tbody').on('click', '.btn-delete', function () {
+            $('tbody').on('click','.btn-delete', function () {
                 if (confirm('你确定要删除吗？')) {
                     //2.获取到要删除的id
                     var id = $(this).attr('data-id');
                     //3.重新发送ajax请求，渲染新的页面
                     $.ajax({
                         type: 'post',
-                        url: BigNew.article_delete,
+                        url: BigNew.category_delete,
                         data: {
                             id: id
                         },
                         success: function (backData) {
-                            // console.log(backData);
+                        console.log(backData);
                             if (backData.code == 204) {
+                                 //  window.location.reload();//刷新页面
                                 getData();//重新发送ajax请求，渲染页面
                             }
                         }
