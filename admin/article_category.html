@@ -52,6 +52,37 @@
         </div>
     </div>
 
+    <!-- bootstrap模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <!-- 隐藏域，用于存放id -->
+                <input type="hidden" name="" id="category_id">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">新增类别</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">新增文章类名:</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">新增文章别名:</label>
+                            <input class="form-control" id="message-text"></input>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary btn-queren">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="./libs/http.js"></script>
     <!-- 准备一个模板 -->
     <script id="listTemp" type="text/html">
@@ -60,8 +91,8 @@
             <td>{{v.name}}</td>
             <td>{{v.slug}}</td>
             <td class="text-center">
-                <a href="javascript:void(0)"  data-id={{v.id}} data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
-                <a href="javascript:void(0)"  data-id={{v.id}}  class="btn btn-danger btn-xs">删除</a>
+                <a href="javascript:void(0)"  data-id={{v.id}} data-toggle="modal" data-target="#myModal" class=" btn btn-info btn-xs">编辑</a>
+                <a href="javascript:void(0)"  data-id={{v.id}}  class="btn btn-danger btn-xs btn-delete">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -70,23 +101,138 @@
         //思路：
         //一:一进到文章类别页面，就显示所有的文章类别
         //入口函数
-        //1.发送ajax请求，获取所有文章类别信息
-        $.ajax({
-            type: 'get',
-            url: window.BigNew.category_list,
-            success: function (backData) {
-                console.log(backData);
-                if (backData.code == 200) {
-                    //2.通过模板引擎把这些信息显示在对应的列表中
-                    var resHtml= template('listTemp',backData);
-                    $('tbody').html(resHtml);
-                }
+        $(function () {
+            getData();
+            function getData() {
+                //1.发送ajax请求，获取所有文章类别信息
+                $.ajax({
+                    type: 'get',
+                    url: window.BigNew.category_list,
+                    success: function (backData) {
+                        // console.log(backData);
+                        if (backData.code == 200) {
+                            //调用模板的核心方法
+                            var resHtml = template('listTemp', backData);
+                            //2.通过模板引擎把这些信息显示在对应的列表中
+                            $('tbody').html(resHtml);
+                        }
+                    }
+                });
+
             }
+
+            //show.bs.modal(事件类型)	
+            //show 方法调用之后立即触发该事件。
+            //如果是通过点击某个作为触发器的元素，则此元素可以通过事件的 relatedTarget 属性进行访问。
+            //二：判断当前弹出的模态框是新增的还是编辑的
+            $('#myModal').on('show.bs.modal', function (e) {
+                //通过e.relatedTarget可以知道弹出的模态框是新增的还是编辑的
+                // console.log(e.relatedTarget);
+                if (e.relatedTarget == $('#xinzengfenlei')[0]) {
+                    // alert('新增类别');
+                    $('#exampleModalLabel').text('新增类别');
+                    $('#myModal .btn-queren').text('新增').addClass('btn-primary').removeClass('btn-success');
+                    //  reset() 方法可把表单中的元素重置为它们的默认值。
+                    $('#myModal form')[0].reset();//dom对象调用
+                } else {
+                    // alert('修改类别');
+                    $('#exampleModalLabel').text('修改类别');
+                    $('#myModal .btn-queren').text('编辑').addClass('btn-success').removeClass('btn-primary');
+
+                    //把编辑的文章类名和别名显示在模态框对应的列表中
+                    $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text());//文章类别名称
+                    $('#message-text').val($(e.relatedTarget).parent().prev().text());//文章别名名称
+
+                    //把当前点击的整个编辑按钮存放的id，保存在隐藏域中
+                    $('#category_id').val($(e.relatedTarget).attr('data-id'));
+                }
+            })
+
+            //三：给模态框中的按钮设置点击事件
+            $('#myModal .btn-cancel').on('click', function () {
+                //  reset() 方法可把表单中的元素重置为它们的默认值。
+                $('#myModal form')[0].reset();//dom对象调用
+            });
+
+
+            //四：给模态框中的新增/编辑按钮设置点击事件
+            $('#myModal .btn-queren').on('click', function () {
+                //1.判断当前点击按钮有无primary属性
+                if ($(this).hasClass('btn-primary')) {
+                    // alert('新增');
+                    var cateName = $('#recipient-name').val().trim();//获取文章类别名称
+                    var cateSlug = $('#message-text').val().trim();//获取文章类别别名
+                    //2.发送ajax请求
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_add,
+                        data: {
+                            name: cateName,
+                            slug: cateSlug
+                        },
+                        success: function (backData) {
+                            //  console.log(backData);
+                            if (backData.code == 201) {
+                                $('#myModal').modal('hide');
+                                //  window.location.reload();//刷新页面
+                                getData();//重新发送ajax请求，渲染页面
+                            }
+                        }
+                    });
+
+                } else {
+                    // alert('编辑');
+                    //3.获取当前这行要修改的id,和修改后的分类名称和分类别名
+                    var cateId = $('#category_id').val().trim();
+                    var cateName = $('#recipient-name').val().trim();//获取文章类别名称
+                    var cateSlug = $('#message-text').val().trim();//获取文章类别别名
+
+                    //4.发送ajax,完成编辑
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_edit,
+                        data: {
+                            id: cateId,
+                            name: cateName,
+                            slug: cateSlug
+                        },
+                        success: function (backData) {
+                            // console.log(backData);
+                            if (backData.code == 200) {
+                                $('#myModal').modal('hide');
+                                //  window.location.reload();//刷新页面
+                                getData();//重新发送ajax请求，渲染页面
+                            }
+                        }
+
+                    });
+                }
+
+            });
+
+            //五：给模态框中的删除按钮注册点击事件
+            //1.删除按钮是动态生成，所以用委托注册
+            $('tbody').on('click', '.btn-delete', function () {
+                if (confirm('你确定要删除吗？')) {
+                    //2.获取到要删除的id
+                    var id = $(this).attr('data-id');
+                    //3.重新发送ajax请求，渲染新的页面
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.article_delete,
+                        data: {
+                            id: id
+                        },
+                        success: function (backData) {
+                            // console.log(backData);
+                            if (backData.code == 204) {
+                                getData();//重新发送ajax请求，渲染页面
+                            }
+                        }
+                    });
+                }
+            })
         });
-
-
-
-
 
 
 
